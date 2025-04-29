@@ -18,8 +18,6 @@ libname="dataset"
 # - SSRN  (http://ssrn.com/abstract=5191689
 # Current version of python scripts and ressources are available on [github's author page](https://github.com/grouss/growing-network-study)
 # This work is currently licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0)
-
-
     
 def LoadAllArray(transpose=False):
     """
@@ -42,12 +40,21 @@ def LoadAllArray(transpose=False):
     else:
         transpose=""
     try:
-        nodes=pickle.load(open(config.graphpath+"nodes_"+transpose+"20240310.pkl","rb"))
-        edges=pickle.load(open(config.graphpath+"edges_"+transpose+"20240310.pkl","rb"))
-        nodesad=pickle.load(open(config.graphpath+"nodesad_20240310.pkl","rb"))
+        filename_nodes=config.graphpath+"nodes_"+transpose+"20240310.pkl"
+        nodes=pickle.load(open(filename_nodes,"rb"))
+        print("Loaded :", filename_nodes)
+
+        filename_edges=config.graphpath+"edges_"+transpose+"20240310.pkl"
+        edges=pickle.load(open(filename_edges,"rb"))
+        print("Loaded :", filename_edges)
+        
+        filename_nodesad=config.graphpath+"nodesad_20240310.pkl"
+        nodesad=pickle.load(open(filename_nodesad,"rb"))
+        print("Loaded :", filename_nodesad)
+
     except:
         print("Did you download dataset files from https://zenodo.org/records/15260640")
-        print("If not, download it and put all files in your import dayta directory")
+        print("If not, download it and put all files in your import data directory")
         print("that can be defined in ./local_utils/config.py")
         if transpose=="transpose_":
             print("Transpose graph is not provided in the zenodo deposit")
@@ -77,40 +84,29 @@ def LoadAllArray_OO(keypath="BigO"):
                      Number of edges.
     """
     try:
-        filename="nodes_o_derived_O-RVRL-O_"+keypath+"_20240429.pkl"
-        nodes=pickle.load(open(config.graphpath+filename,"rb"))
-        print("Loaded :", filename)
-        filename="edges_o_derived_O-RVRL-O_"+keypath+"_20240429.pkl"
-        edges=pickle.load(open(config.graphpath+filename,"rb"))
-        print("Loaded :", filename)
-        if len(edges)!=nodes[-1]:
-            print("Warning: Fix edges len")
-            edges=edges[:nodes[-1]]
-            answer=input("save fixed version (yes/*)?")
-            if answer=="yes":
-                pickle.dump(edges,open(config.graphpath+filename,"wb"))
-
+        
+        filename_nodes="nodes_o_derived_O-RVRL-O_"+keypath+"_20240429.pkl"
+        nodes=pickle.load(open(config.graphpath+filename_nodes,"rb"))
+        print("Loaded :", filename_nodes)
+        
+        filename_edges="edges_o_derived_O-RVRL-O_"+keypath+"_20240429.pkl"
+        edges=pickle.load(open(config.graphpath+filename_edges,"rb"))
+        print("Loaded :", filename_edges)
+        
         # nodesadderived only depends on temporal partitionning, not on the derived/inheritance policy
-        filename="nodesadderived_derived_O-RVRL-O_BigO_20240429.pkl"
-        nodesad=pickle.load(open(config.graphpath+filename,"rb"))
-        print("Loaded :", filename)
-        if len(nodesad)!=len(nodes)-1:
-            print("Warning: Fix nodesad len")
-            nodesad=nodesad[:len(nodes)-1] #
-            answer=input("save fixed version (yes/*)?")
-            if answer=="yes":
-                pickle.dump(nodesad,open(config.graphpath+filename,"wb"))
-                print("Saved : ",filename)
+        filename_nodesad="nodesadderived_derived_O-RVRL-O_BigO_20240429.pkl"
+        nodesad=pickle.load(open(config.graphpath+filename_nodesad,"rb"))
+        print("Loaded :", filename_nodesad)
+        
     except:
         print("Did you download dataset files from https://zenodo.org/records/15260640")
         print("If not, download it and put all files in your import dayta directory")
         print("that can be defined in ./local_utils/config.py")
         return -1
+    
     d=GetD()
     Nnodes=nodes.shape[0]-1
     Nedges=edges.shape[0]
-
-
     return nodes,edges,nodesad,d,Nnodes,Nedges  
 
 def GetD(Verbose=False):

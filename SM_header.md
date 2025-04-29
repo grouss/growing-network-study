@@ -22,15 +22,15 @@ Rousseau, G. (2025). *Temporal and topological partitioning in real-world growin
 - 1. Function Definitions
 - 2. Dataset Import
 - 3. Building the Transposed Graph
-- 4. Temporal Information Quality and Summary Statistics
-- 5. Growth Relationship Between Nodes and Edges
-- 6. Topological Partitioning ($RV$ Nodes)
-- 7. In-Degree and Out-Degree Distributions Over Time  
-- 8. Distribution Tail Analysis 
-- 9. Temporal Partitioning
-- 10. Derived $O-(RV/RL)-O$ Graph Construction 
-- 11. Building the $TSL$ Partitioning
-- 12. Barabási–Albert Model Use Case
+- 4. Temporal Information Quality and Summary Statistics (not provided yet)
+- 5. Growth Relationship Between Nodes and Edges (not provided yet)
+- 6. Topological Partitioning ($RV$ Nodes) (not provided yet)
+- 7. In-Degree and Out-Degree Distributions Over Time  (not provided yet)
+- 8. Distribution Tail Analysis (not provided yet)
+- 9. Temporal Partitioning (not provided yet)
+- 10. Derived $O-(RV/RL)-O$ Graph Construction (not provided yet)
+- 11. Building the $TSL$ Partitioning (not provided yet)
+- 12. Barabási–Albert Model Use Case (not provided yet)
 
 
-**NB :** As of 2025/04/22, only the QuickStart guide and the replication package are available. The Python scripts are also provided under `local_utils` directory, but they are not in their final form and should be considered an alpha release. The graphs used in the study are available in a distinct Zenodo Deposit 10.5281/zenodo.15260640 ($\sim50$ Go), including the main dataset $O/RV/RL-O/RV/RL$ (2+ billions of nodes, $\sim4$ billions of edges), and two derived $O-(RV/RL)-O$ graphs ($\sim150$ millions nodes and edges). 
+**NB :** As of 2025/04/29, only the QuickStart guide, the replication package, SM01, SM02 and SM03 are available. The Python scripts are also provided under `local_utils` directory, but they are not in their final form and should be considered an alpha release. The graphs used in the study are available in a distinct Zenodo Deposit 10.5281/zenodo.15260640 ($\sim50$ Go), including the main dataset $O/RV/RL-O/RV/RL$ (2+ billions of nodes, $\sim4$ billions of edges), and two derived $O-(RV/RL)-O$ graphs ($\sim150$ millions nodes and edges). 
