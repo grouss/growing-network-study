@@ -131,8 +131,8 @@ def Plot_Figure_Degree(x,y,yc,Fall=True,fontsize=28,year=2100,filename='ehat_ind
     yfit,xfit,imin,x_min_shift,e_x_min_shift,D_max_shift=Get_yfit_yc_y_x(x,y,yc,Fall=Fall,WKS=WKS,XCmin=XCmin)
     fig, axs = plt.subplots(3,figsize=(18,2*height),sharex=True)   
     plt.tight_layout()
-    axs[0].loglog(x,yc,"-",color="tab:blue",lw=6,markersize=10)
-    axs[0].loglog(x,y,"o",color="tab:blue",markersize=8,alpha=1)
+    axs[0].loglog(x,yc,"-",color="tab:blue",lw=6,markersize=10,alpha=0.8)
+    axs[0].loglog(x,y,"o",color="tab:blue",markersize=8,alpha=0.8)
     axs[0].loglog(xfit,yfit,'-',color="k",lw=3,zorder=-10)
     axs[2].semilogx(x_min_shift,e_x_min_shift,"o",markersize=10,color="k")
     axs[2].axhline(y=e_x_min_shift[imin],ls="--",color="k")
@@ -165,8 +165,18 @@ def Plot_Figure_Degree(x,y,yc,Fall=True,fontsize=28,year=2100,filename='ehat_ind
         ytext=10**(np.min(np.log10(D_max_shift))+(np.max(np.log10(D_max_shift))-np.min(np.log10(D_max_shift)))/3)
     else:
         ytext=10**(np.min(np.log10(yrangeDKS))+(np.max(np.log10(yrangeDKS))-np.min(np.log10(yrangeDKS)))/3)
-                   
-    axs[1].text(xtext,ytext,r'$D_{KS}(x_c)$'+'\n'+r'$x_c^{min}=$'+f'{x_min_shift[imin]}',fontdict={"fontsize":fontsize+5,'backgroundcolor':'w'})
+    
+    Dname={
+        "KS":r'$D_{KS}(x_c)$',
+        "weightedKS":r'$D_{KSw}(x_c)$',
+        "Kuiper":r'$D_{KU}(x_c)$'
+    }
+    try:
+        name=Dname[WKS]
+    except:
+        name="D_{unknown}"
+        print("WARNING unknown distance in Plot_Figure_Degree")
+    axs[1].text(xtext,ytext,name+'\n'+r'$x_c^{min}=$'+f'{x_min_shift[imin]}',fontdict={"fontsize":fontsize+5,'backgroundcolor':'w'})
     
     
     xrange=[xrangeCCDF,xrangeDKS,xrangeAlpha]

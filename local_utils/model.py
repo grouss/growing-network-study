@@ -94,7 +94,7 @@ def BarabasiAlbertGraph(n = 10,m = 2,seed=None,Verbose=False,SelfLoop=False):
         edges=edgestmp.flatten()
     return nodes,edges,Nnodes,Nedges,SelfLoop
 
-def zipf_distribution(alpha,xmin,N,Debug=False):
+def zipf_distribution(alpha,xmin,N,Debug=False,Fccdf=False):
     """
     Provide a discrete random sample of size N, scaling factor alpha, 
     and minimal value xmin following a disceret powerlaw (i.e. a zipf distribution)
@@ -128,4 +128,31 @@ def zipf_distribution(alpha,xmin,N,Debug=False):
         y=np.array(y)
     tf=time.time()
     if Debug: print("Elpase ",tf-ti,"(s)")
-    return x,y
+    if Fccdf:
+        return x,y,np.cumsum(y[::-1])[::-1]
+    else:
+        return x,y
+
+def Sum_Two_Zipf_distribution(alpha_1,xmin_1,N_1,alpha_2,xmin_2,N_2,Fccdf=False):
+    """
+    Merge 2 Zipf distribution.
+    """
+    x_1,y_1=zipf_distribution(alpha_1,xmin_1,N_1)
+    x_2,y_2=zipf_distribution(alpha_2,xmin_2,N_2)
+
+    # merge the 2 distributions 
+
+    x=np.arange(max(max(x_1),max(x_2))+1)
+    y=np.zeros_like(x)
+
+    y[x_1]+=y_1
+    y[x_2]+=y_2
+    
+    mask=y!=0
+    x=x[mask]
+    y=y[mask]
+    
+    if Fccdf:
+        return x,y,np.cumsum(y[::-1])[::-1]
+    else:
+        return x,y

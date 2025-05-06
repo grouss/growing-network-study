@@ -283,3 +283,6 @@ def Get_yfit_yc_y_x(x,y,yc,Fall=False,Verbose=False,shift=0.5,WKS="weightedKS",X
         return yfit,xfit
 
 
+
+def power_law(x, a, b):
+    return np.log(a)+b*np.log(x)
