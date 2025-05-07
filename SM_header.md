@@ -27,7 +27,7 @@ Rousseau, G. (2025). *Temporal and topological partitioning in real-world growin
 - 6. [Topological Partitioning($RV$ Nodes)](./SM06_TopologicalPartitioning.ipynb)
 - 7. [In-Degree and Out-Degree Distributions Over Time](./SM07_DegreeDistributionOverTime.ipynb)
 - 8. [Distribution Tail Analysis](./SM08_DistributionTailAnalysis.ipynb)
-- 9. Temporal Partitioning (not provided yet)
+- 9. [Temporal Partitioning](./SM09_TemporalPartitioning.ipynb)
 - 10. Derived $O-(RV/RL)-O$ Graph Construction (not provided yet)
 - 11. Building the $TSL$ Partitioning (not provided yet)
 - 12. Barabási–Albert Model Use Case (not provided yet)
