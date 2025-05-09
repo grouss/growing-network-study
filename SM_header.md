@@ -33,7 +33,7 @@ Rousseau, G. (2025). *Temporal and topological partitioning in real-world growin
 - 9. [Temporal Partitioning](./SM09_TemporalPartitioning.ipynb)
 - 10. [Derived $O-(RV/RL)-O$ Graph Construction](./SM10_DerivedGrowingNetwork.ipynb)
 - 11. [Building the $TSL$ Partitioning](./SM11_TSLPartitioning.ipynb)
-- 12. Barabási–Albert Model Use Case (not provided yet)
+- 12. [Barabási–Albert Model Use Case](./SM12_BarabasiAlbertUseCase.ipynb)
 
 
-**NB :** As of 2025/05/07, only the QuickStart guide, the replication package, SM01 to SM11 are available. The Python scripts are also provided under `local_utils` directory, but they are not in their final form and should be considered an alpha release. The graphs used in the study are available in a distinct Zenodo Deposit 10.5281/zenodo.15260640 ($\sim50$ Go), including the main dataset $O/RV/RL-O/RV/RL$ (2+ billions of nodes, $\sim4$ billions of edges), and two derived $O-(RV/RL)-O$ graphs ($\sim150$ millions nodes and edges). 
+**NB :** As of 2025/05/07, the QuickStart guide, the replication package, and SM01 to SM12 are available. The Python scripts are also provided under `local_utils` directory, but they are not in their final form and should be considered an alpha release. The graphs used in the study are available in a distinct Zenodo Deposit 10.5281/zenodo.15260640 ($\sim50$ Go), including the main dataset $O/RV/RL-O/RV/RL$ (2+ billions of nodes, $\sim4$ billions of edges), and two derived $O-(RV/RL)-O$ graphs ($\sim150$ millions nodes and edges). 
