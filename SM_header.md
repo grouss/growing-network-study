@@ -12,13 +12,15 @@ To give appropriate credit and cite this work ([BibTeX entry](./rousseau2025temp
 Rousseau, G. (2025). *Temporal and topological partitioning in real-world growing networks for scale-free properties study* [Preprint]. arXiv:2501.10145. https://arxiv.org/abs/2501.10145; also available on SSRN: http://ssrn.com/abstract=5191689
 
  
-# A) Replication Package
+# A) Replication Packages
 
-[Open the corresponding Replication Package notebook](./Replication_Package.ipynb)
+[Open the Replication Package notebook related to the datasets.](./Replication_Package_Datasets.ipynb)
+
+[Open the Replication Package notebook related to the figures.](./Replication_Package_Figures.ipynb)
 
 # B) QuickStart Guide
 
-[Open the corresponding QuickStart Guide notebook](./SM00_QuickStart.ipynb)
+[Open the QuickStart Guide notebook](./SM00_QuickStart.ipynb)
 
 # C) Table of Contents
 
@@ -36,4 +38,4 @@ Rousseau, G. (2025). *Temporal and topological partitioning in real-world growin
 - 12. [Barabási–Albert Model Use Case](./SM12_BarabasiAlbertUseCase.ipynb)
 
 
-**NB :** As of 2025/05/07, the QuickStart guide, the replication package, and SM01 to SM12 are available. The Python scripts are also provided under `local_utils` directory, but they are not in their final form and should be considered an alpha release. The graphs used in the study are available in a distinct Zenodo Deposit 10.5281/zenodo.15260640 ($\sim50$ Go), including the main dataset $O/RV/RL-O/RV/RL$ (2+ billions of nodes, $\sim4$ billions of edges), and two derived $O-(RV/RL)-O$ graphs ($\sim150$ millions nodes and edges). 
+**NB :** As of 2025/05/16, the QuickStart guide, the replication packages, and SM01 to SM12 are available. The Python scripts are also provided under `local_utils` directory, but they are not in their final form and should be considered an alpha release. The graphs used in the study are available in a distinct Zenodo Deposit 10.5281/zenodo.15260640 ($\sim50$ Go), including the main dataset $O/RV/RL-O/RV/RL$ (2+ billions of nodes, $\sim4$ billions of edges), and two derived $O-(RV/RL)-O$ graphs ($\sim150$ millions nodes and edges). 
