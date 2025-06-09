@@ -423,7 +423,7 @@ def GetTargetEdgeTimeStamp(nodes,edges,nodesTS,d):
     return nodesTS[edges]
     
 
-def GetEdgeTs(nodes,edges,nodesad,d,Nnodes,Nedges):
+def GetEdgeTs(nodes,edges,nodesad,d,Nnodes,Nedges,depth=None):
     """
     Build timestamp array of all source nodes and target nodes
     """
@@ -462,8 +462,13 @@ def GetEdgeTs(nodes,edges,nodesad,d,Nnodes,Nedges):
     print("Applying Mask ",np.round(tf-ti,2),"(s)")
 
     ti=time.time()
-    arraytype,encoding=GetEdgesTypesArray(nodes,edges,d)
-    arraytype=arraytype[maskEdgeTS]
+    if depth==None:
+        arraytype,encoding=GetEdgesTypesArray(nodes,edges,d)
+        arraytype=arraytype[maskEdgeTS]
+    else:
+        print("TSL depth=",depth)
+        arraytype,encoding=GetEdgesTypesArray(nodes,edges,d,depth=depth)
+        arraytype=arraytype[maskEdgeTS]
     tf=time.time()
     print("Building edge type array and applying mask",np.round(tf-ti,2),"(s)")
     print(80*"-")
