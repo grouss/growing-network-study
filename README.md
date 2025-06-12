@@ -4,6 +4,8 @@ Author: [Guillaume Rousseau](https://www.linkedin.com/in/grouss/), Department of
 
 This archive contains the supplemental materials and replication package associated with the preprint, "*Temporal and topological partitioning in real-world growing networks for scale-free properties study*", available on [arXiv](https://arxiv.org/abs/2501.10145) and [ssrn](http://ssrn.com/abstract=5191689).
 
+**The latest version of the preprint (timestamped arXiv:2501.10145v2) is downloadable here https://arxiv.org/pdf/2501.10145v2**
+
 The current version of the Python scripts and associated resources is available on the [author's GitHub page](https://github.com/grouss/growing-network-study).
 
 This work is currently licensed under the [Creative Commons CC BY-NC-SA 4.0 license](https://creativecommons.org/licenses/by-nc-sa/4.0).
