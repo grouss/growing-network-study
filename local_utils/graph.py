@@ -2,12 +2,12 @@ import pickle
 import time
 import json
 import numpy as np
-
+from datetime import datetime,timezone
 
 
 import warnings
 from . import config
-from .dataset import *
+#from .dataset import *
 
 warnings.filterwarnings("ignore")
 libname="graph"
@@ -81,7 +81,7 @@ def GetNodesType(index,dRVindexMin=156799786,dOindexMax=139524532):
         else:
             return "RL"
 
-def GetNodesTypesArrayTSL(nodes,edges,d=GetD(),depth=None, Debug=False):
+def GetNodesTypesArrayTSL(nodes,edges,d,depth=None, Debug=False):
     """
     Returns the TSL node type and the corresponding encoding.
 
@@ -134,7 +134,7 @@ def GetNodesTypesArrayTSL(nodes,edges,d=GetD(),depth=None, Debug=False):
     nodestype=T*(depth+1)**2+S*(depth+1)+L
     return nodestype,encoding
     
-def GetEdgesTypesArrayTSL(nodes,edges,d=GetD(),depth=None,Debug=True):
+def GetEdgesTypesArrayTSL(nodes,edges,d,depth=None,Debug=True):
     """
     Returns the TSL edge type and the corresponding encoding.
 
@@ -155,7 +155,7 @@ def GetEdgesTypesArrayTSL(nodes,edges,d=GetD(),depth=None,Debug=True):
         print("ERROR edges==None")
         return None,None
     sourceEdges=GetSourceEdge(nodes)
-    nodestype,nodesencoding=GetNodesTypesArrayTSL(nodes,edges,d=d,depth=depth,Debug=Debug)
+    nodestype,nodesencoding=GetNodesTypesArrayTSL(nodes,edges,d,depth=depth,Debug=Debug)
     edgestype=nodestype[sourceEdges]*len(nodesencoding)+nodestype[edges]
     edgesencoding=[]
     for se in nodesencoding:
@@ -163,7 +163,7 @@ def GetEdgesTypesArrayTSL(nodes,edges,d=GetD(),depth=None,Debug=True):
             edgesencoding.append(se+">"+te)
     return edgestype,edgesencoding
     
-def GetNodesTypesArray(nodes,edges,d=GetD(),depth=None,Debug=True):
+def GetNodesTypesArray(nodes,edges,d,depth=None,Debug=True):
     """
     Returns the node type and the corresponding encoding.
 
@@ -181,31 +181,49 @@ def GetNodesTypesArray(nodes,edges,d=GetD(),depth=None,Debug=True):
                   of node.
     """
     if depth!=None:
-        return GetNodesTypesArrayTSL(nodes,edges,d=d,depth=depth,Debug=Debug)
+        return GetNodesTypesArrayTSL(nodes,edges,d,depth=depth,Debug=Debug)
     # depth!=None is used to return to switch to the TSL type of the O-(RV/RL)-O derived graph
     
-    # the following one, which the default one, works for the full graph with
-    # O/RV/RL nodes, but also for the O-(RV/RL)-O derived graph which only contains 
-    # O nodes
-    
-    encoding=["O","RL","RV"]
+    if False:
+        # this implementation is optimized for SWH dataset 
+        # the following one, which the default one, works for the full graph with
+        # O/RV/RL nodes, but also for the O-(RV/RL)-O derived graph which only contains 
+        # O nodes
 
-    # 0 => "O"
-    # 1 => "RL"
-    # 2 => "RV"
-    
-    nodestype=2*np.ones(len(nodes)-1,dtype='int8')
-    
-    try:
-        nodestype[d["OindexMin"]:d["OindexMax"]+1]=0
-    except:
-        pass
-    try:
-        nodestype[d["RLindexMin"]:d["RLindexMax"]+1]=1
-    except:
-        pass
+        encoding=["O","RL","RV"]
+
+        # 0 => "O"
+        # 1 => "RL"
+        # 2 => "RV"
+
+        nodestype=2*np.ones(len(nodes)-1,dtype='int8')
+
+        try:
+            nodestype[d["OindexMin"]:d["OindexMax"]+1]=0
+        except:
+            pass
+        try:
+            nodestype[d["RLindexMin"]:d["RLindexMax"]+1]=1
+        except:
+            pass
+    else:
+        # here we derived the encoding from d
+        # this version leads to the same encoding and nodestype array
+        # for the SWH dataset
+        encoding=[]
+        for key in sorted(d.keys()):
+            if "index" not in key:
+                encoding.append(key)
+        nodestype=-1*np.ones(len(nodes)-1,dtype='int8')
+        # we use -1 to be sur un debug section
+        # that all types have been set
+        for i,key in enumerate(encoding):
+            nodestype[d[key+"indexMin"]:d[key+"indexMax"]+1]=i
     
     if Debug:
+        if np.min(nodestype)<0:
+            print("ERROR np.min(nodestype)<0 =>",np.min(nodestype))
+            return -1,-1
         for key,value in d.items():
             if "index" in key:
                 if value<len(nodestype) and encoding[nodestype[value]]!=key.split("index")[0]:
@@ -213,7 +231,7 @@ def GetNodesTypesArray(nodes,edges,d=GetD(),depth=None,Debug=True):
                     return -1,-1
     return nodestype,encoding
 
-def GetEdgesTypesArray(nodes,edges,d=GetD(),depth=None,Debug=False):
+def GetEdgesTypesArray(nodes,edges,d,depth=None,Debug=False):
     """
     Returns the edge type and the corresponding encoding.
 
@@ -231,37 +249,63 @@ def GetEdgesTypesArray(nodes,edges,d=GetD(),depth=None,Debug=False):
                   of edge.
     """
     if depth!=None:
-        return GetEdgesTypesArrayTSL(nodes,edges,d=d,depth=depth,Debug=Debug)
+        return GetEdgesTypesArrayTSL(nodes,edges,d,depth=depth,Debug=Debug)
     # depth!=None is used to switch to the TSL type of the O-(RV/RL)-O derived graph
     # and call the right function
 
-    # # edges 3* source node type encoding + target node type encoding
-    # 0 => "O>O"   # does not exist
-    # 1 => "O>RL"
-    # 2 => "O>RV"
-    # 3 => "RL>O"  # does not exist
-    # 4 => "RL>RL"
-    # 5 => "RL>RV"
-    # 6 => "RV>O"  # does not exist
-    # 7 => "RV>RL" # does not exist
-    # 8 => "RV>RV"
-    encoding=["O>O","O>RL","O>RV","RL>O","RL>RL","RL>RV","RV>O","RV>RL","RV>RV"]
-    
-    # set source type bits (could use more generic approach, see below)
-    # we assume edge type "RV>RV" by default
-    edgestype=8*np.ones_like(edges,dtype='int8') 
-    try:
-        edgestype[nodes[d["RLindexMin"]]:nodes[d["RLindexMax"]+1]]-=3
-    except:
-        pass
-    try:
-        edgestype[nodes[d["OindexMin"]]:nodes[d["OindexMax"]+1]]-=6
-    except:
-        pass
-    edgestype[edges<=d["RLindexMax"]]-=1
-    edgestype[edges<=d["OindexMax"]]-=1
+    if False:
+        # # edges 3* source node type encoding + target node type encoding
+        # 0 => "O>O"   # does not exist
+        # 1 => "O>RL"
+        # 2 => "O>RV"
+        # 3 => "RL>O"  # does not exist
+        # 4 => "RL>RL"
+        # 5 => "RL>RV"
+        # 6 => "RV>O"  # does not exist
+        # 7 => "RV>RL" # does not exist
+        # 8 => "RV>RV"
+        encoding=["O>O","O>RL","O>RV","RL>O","RL>RL","RL>RV","RV>O","RV>RL","RV>RV"]
+
+        # set source type bits (could use more generic approach, see below)
+        # we assume edge type "RV>RV" by default
+        edgestype=8*np.ones_like(edges,dtype='int8') 
+        try:
+            edgestype[nodes[d["RLindexMin"]]:nodes[d["RLindexMax"]+1]]-=3
+        except:
+            pass
+        try:
+            edgestype[nodes[d["OindexMin"]]:nodes[d["OindexMax"]+1]]-=6
+        except:
+            pass
+        edgestype[edges<=d["RLindexMax"]]-=1
+        edgestype[edges<=d["OindexMax"]]-=1
+    else:
+        encoding=[]
+        encodingNodes=[]
+        for key1 in sorted(d.keys()):
+            if "index" not in key1:
+                encodingNodes.append(key1)
+                for key2 in sorted(d.keys()):
+                    if "index" not in key2:
+                        encoding.append(key1+">"+key2)
+        edgestype=-len(encoding)*np.ones_like(edges,dtype='int8')
+        
+        for i1,key1 in enumerate(encodingNodes):
+            # update according to source type
+            try:
+                edgestype[nodes[d[key1+"indexMin"]]:nodes[d[key1+"indexMax"]+1]]=i1*len(encodingNodes)
+            except:
+                print(nodes[d[key1+"indexMin"]])
+                print(nodes[d[key1+"indexMax"]+1])
+                edgestype[nodes[d[key1+"indexMin"]]:nodes[d[key1+"indexMax"]+1]]=i1*len(encodingNodes)
+
+        for i2,key2 in enumerate(encodingNodes):
+            # update according to target type
+            edgestype[np.logical_and(d[key2+"indexMin"]<=edges,edges<=d[key2+"indexMax"])]+=i2
+        
+
     if Debug:
-        if np.min(edgestype)<0 or np.max(edgestype)>8:
+        if np.min(edgestype)<=-1 or np.max(edgestype)>=len(encoding):
             print("ERROR GetEdgesTypesArray",np.min(edgestype),np.max(edgestype))
             return -1,-1
     return edgestype,encoding
@@ -384,12 +428,18 @@ def ArgSort(array,kind="quicksort"):
     # The ‘mergesort’ option is retained for backwards compatibility.
     return np.argsort(array,kind=kind)
 
-def timestampsarray2yearmonth(arrayTS):
+def timestampsarray2yearmonth(arrayTS,EPOCH='1970-01-01',Verbose=False,Debug=True):
     """
     Convert timestamp array (in seconds since EPOCH) in months since EPOCH
     """
-    return (np.array(arrayTS, dtype='datetime64[s]') - np.datetime64('1970-01-01')).astype('timedelta64[M]').astype('int')
-
+    delta=(np.datetime64(EPOCH)-np.datetime64('1970-01-01')).astype('timedelta64[s]').astype('int')
+    if Verbose:
+        print("delta",delta)
+    answer=(np.array(arrayTS, dtype='datetime64[s]') +np.timedelta64(delta, 's')- np.datetime64(EPOCH)).astype('timedelta64[M]').astype('int')
+    if Debug:
+        if np.min(answer)<0 or np.max(answer)>1633:
+            print("ERROR","min",np.min(answer) , "max",np.max(answer))
+    return answer
 
     
 def GetSourceEdgeTimeStamp(nodes,edges,nodesTS,d):
@@ -423,7 +473,7 @@ def GetTargetEdgeTimeStamp(nodes,edges,nodesTS,d):
     return nodesTS[edges]
     
 
-def GetEdgeTs(nodes,edges,nodesad,d,Nnodes,Nedges,depth=None):
+def GetEdgeTs(nodes,edges,nodesad,d,Nnodes,Nedges,depth=None,EPOCH='1970-01-01'):
     """
     Build timestamp array of all source nodes and target nodes
     """
@@ -456,8 +506,8 @@ def GetEdgeTs(nodes,edges,nodesad,d,Nnodes,Nedges,depth=None):
 
     # convert s since EPOCH to Months since EPOCH
     ti=time.time()
-    sourcearrayTS=timestampsarray2yearmonth(sourcearrayTS)
-    targetarrayTS=timestampsarray2yearmonth(targetarrayTS)
+    sourcearrayTS=timestampsarray2yearmonth(sourcearrayTS,EPOCH=EPOCH)
+    targetarrayTS=timestampsarray2yearmonth(targetarrayTS,EPOCH=EPOCH)
     tf=time.time()
     print("Applying Mask ",np.round(tf-ti,2),"(s)")
 
@@ -473,3 +523,14 @@ def GetEdgeTs(nodes,edges,nodesad,d,Nnodes,Nedges,depth=None):
     print("Building edge type array and applying mask",np.round(tf-ti,2),"(s)")
     print(80*"-")
     return arraytype,encoding,sourcearrayTS,targetarrayTS,deltaTS
+
+
+def EPOCH2Epoch(EPOCH):
+    # convert "%Y-%m-%d"
+    # to decimal year date
+    
+    yearbegin=datetime.strptime(EPOCH[:4]+"-01-01", "%Y-%m-%d")
+    yearcurrent=datetime.strptime(EPOCH, "%Y-%m-%d")
+    yearend=datetime.strptime(str(int(EPOCH[:4])+1)+"-01-01", "%Y-%m-%d")
+    return int(EPOCH[:4])+(yearcurrent-yearbegin).total_seconds()/(yearend-yearbegin).total_seconds()
+    

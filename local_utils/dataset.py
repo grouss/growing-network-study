@@ -7,6 +7,7 @@ import numpy as np
 
 import warnings
 from . import config
+from .graph import *
 
 warnings.filterwarnings("ignore")
 libname="dataset"
@@ -52,6 +53,10 @@ def LoadAllArray(transpose=False):
         nodesad=pickle.load(open(filename_nodesad,"rb"))
         print("Loaded :", filename_nodesad)
 
+        filename_metadata=config.graphpath+"d_20240310.pkl"
+        DatasetName,DatasetDescription,DatasetDoi,d,EPOCH=pickle.load(open(filename_metadata,"rb"))
+        print("Loaded :", filename_metadata)
+
     except:
         print("Did you download dataset files from https://zenodo.org/records/15260640")
         print("If not, download it and put all files in your import data directory")
@@ -61,10 +66,11 @@ def LoadAllArray(transpose=False):
             print("use SM03_BuildingTransposeGraph.ipynb to build it")
         return -1
         
-    d=GetD()
+    #d=GetD()
     Nnodes=nodes.shape[0]-1
     Nedges=edges.shape[0]
-    return nodes,edges,nodesad,d,Nnodes,Nedges    
+    DisplayDatasetInfo(DatasetName,DatasetDescription,DatasetDoi,EPOCH)
+    return nodes,edges,nodesad,d,Nnodes,Nedges,EPOCH,DatasetName 
  
 def LoadAllArray_OO(keypath="BigO"):
     """
@@ -97,6 +103,11 @@ def LoadAllArray_OO(keypath="BigO"):
         filename_nodesad="nodesadderived_derived_O-RVRL-O_BigO_20240429.pkl"
         nodesad=pickle.load(open(config.graphpath+filename_nodesad,"rb"))
         print("Loaded :", filename_nodesad)
+
+        filename_metadata=config.graphpath+"d_o_derived_O-RVRL-O_BigO_20240429.pkl"
+        DatasetName,DatasetDescription,DatasetDoi,d,EPOCH=pickle.load(open(filename_metadata,"rb"))
+        print("Loaded :", filename_metadata)
+
         
     except:
         print("Did you download dataset files from https://zenodo.org/records/15260640")
@@ -104,40 +115,41 @@ def LoadAllArray_OO(keypath="BigO"):
         print("that can be defined in ./local_utils/config.py")
         return -1
     
-    d=GetD()
+    #d=GetD()
     Nnodes=nodes.shape[0]-1
     Nedges=edges.shape[0]
-    return nodes,edges,nodesad,d,Nnodes,Nedges  
+    DisplayDatasetInfo(DatasetName,DatasetDescription,DatasetDoi,EPOCH)
+    return nodes,edges,nodesad,d,Nnodes,Nedges,EPOCH,DatasetName 
 
-def GetD(Verbose=False):
-    """
-    This function return index min and index max for each node types, and total number of nodes of each types. 
-    This is specific to the graph representation and dataset used because nodes'type encoding assumes node ordering by type.
-        Parameters:
-            Verbose: Default=False. 
-                     Display info 
-        Returns:
-            dict: key:int. 
-                  keys are of the forme TYPEindexMin, TYPEindexMax, TYPE
-    """
-    
-    d={
-       "RVindexMin": 156799786,
-       "RVindexMax": 2224378839,
-       "RV": 2067579054,
-       "OindexMin": 0,
-       "OindexMax": 139524532,
-       "O": 139524533,
-       "RLindexMin": 139524533,
-       "RLindexMax": 156799785,
-       "RL": 17275253
-        }
-    if Verbose:
-        print(json.dump(d,depth=3))
-    # Origins            139 524 533
-    # Revisions        2 067 579 054
-    # Releases            17 275 253
-    return d
+#def GetD(Verbose=False):
+#    """
+#    This function return index min and index max for each node types, and total number of nodes of each types. 
+#    This is specific to the graph representation and dataset used because nodes'type encoding assumes node ordering by type.
+#        Parameters:
+#            Verbose: Default=False. 
+#                     Display info 
+#        Returns:
+#            dict: key:int. 
+#                  keys are of the forme TYPEindexMin, TYPEindexMax, TYPE
+#    """
+#    
+#    d={
+#       "RVindexMin": 156799786,
+#       "RVindexMax": 2224378839,
+#       "RV": 2067579054,
+#       "OindexMin": 0,
+#       "OindexMax": 139524532,
+#       "O": 139524533,
+#       "RLindexMin": 139524533,
+#       "RLindexMax": 156799785,
+#       "RL": 17275253
+#        }
+#    if Verbose:
+#        print(json.dump(d,depth=3))
+#    # Origins            139 524 533
+#    # Revisions        2 067 579 054
+#    # Releases            17 275 253
+#    return d
 
 
 def SetParamsBA_d(NnodesBA):
@@ -145,7 +157,7 @@ def SetParamsBA_d(NnodesBA):
     Set Params similar to the network studyied here
     """
     dBA={}
-    for ntype in ["O","RV","RL"]:
+    for ntype in ["O"]:#,"RV","RL"]:
         dBA[ntype]=0
         dBA[ntype+"indexMin"]=0
         dBA[ntype+"indexMax"]=0
@@ -155,16 +167,55 @@ def SetParamsBA_d(NnodesBA):
     dBA["OindexMax"]=NnodesBA-1
 
 
-    for key in ["RV","RL"]:
-        dBA[key]=0
-        dBA[key+"indexMax"]=NnodesBA
-        dBA[key+"indexMin"]=NnodesBA
+    #for key in ["RV","RL"]:
+    #    dBA[key]=0
+    #    dBA[key+"indexMax"]=NnodesBA
+    #    dBA[key+"indexMin"]=NnodesBA
     return dBA
 
-def SetParamsBA_nodesad(NnodesBA):
+def SetParamsBA_nodesad(NnodesBA,EPOCH='1970-01-01'):
     """
     Set Params similar to the network studyied here
     """
-    nodesadBA=1+(2021-1970)*365*24*3600*np.log(np.arange(1,NnodesBA+1,dtype='float'))/np.log(NnodesBA)
+    Epoch=EPOCH2Epoch(EPOCH)
+    nodesadBA=1+(2021-Epoch)*365*24*3600*np.log(np.arange(1,NnodesBA+1,dtype='float'))/np.log(NnodesBA)
     nodesadBA=nodesadBA.astype('uint32')
     return nodesadBA
+
+
+def  LoadAllArrayAPS(transpose=False):
+    if transpose:
+        transpose="transpose_"
+    else:
+        transpose=""
+    try:
+        filename_nodes=config.graphpath+"nodes_APS_"+transpose+"20250618.pkl"
+        nodes=pickle.load(open(filename_nodes,"rb"))
+        print("Loaded :", filename_nodes)
+
+        filename_edges=config.graphpath+"edges_APS_"+transpose+"20250618.pkl"
+        edges=pickle.load(open(filename_edges,"rb"))
+        print("Loaded :", filename_edges)
+        
+        filename_nodesad=config.graphpath+"nodesad_APS_20250618.pkl"
+        nodesad=pickle.load(open(filename_nodesad,"rb"))
+        print("Loaded :", filename_nodesad)
+        
+        filename_metadata=config.graphpath+"d_APS_20250618.pkl"
+        DatasetName,DatasetDescription,DatasetDoi,d,EPOCH=pickle.load(open(filename_metadata,"rb"))
+        print("Loaded :", filename_metadata)
+                
+        
+    except:
+        print("ERROR loading")
+    #d=GetD()
+    Nnodes=nodes.shape[0]-1
+    Nedges=edges.shape[0]
+    DisplayDatasetInfo(DatasetName,DatasetDescription,DatasetDoi,EPOCH)
+    return nodes,edges,nodesad,d,Nnodes,Nedges,EPOCH,DatasetName  
+
+def DisplayDatasetInfo(DatasetName,DatasetDescription,DatasetDoi,EPOCH):
+    print("DatasetName",DatasetName)
+    print("DatasetDescription",DatasetDescription)
+    print("DatasetDoi",DatasetDoi)
+    print("From EPOCH",EPOCH)

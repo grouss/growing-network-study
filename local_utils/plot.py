@@ -7,6 +7,7 @@ import networkx as nx
 
 from . import config
 from .mle import *
+from .graph import *
 
 warnings.filterwarnings("ignore")
 libname="plot"
@@ -34,90 +35,149 @@ FontSize[2]=FontSize[1]+4
 FontSize[3]=FontSize[1]+8
 
 
-def PlotTSoverTimeNodes(nodearrayTS,mask_type,Ntype):
-    x=np.arange(1634)/12+1970
-    plt.figure(figsize=(18,4))
-    plt.title("Nodes of type : "+Ntype)
-    plt.fill_between(x,np.bincount(nodearrayTS[mask_type],minlength=1634),color="tab:blue",label=Ntype+r' TS $Nodes$',alpha=0.5)
-    verticalline()
-    plt.yscale("log") 
-    plt.xlim(1970,2025)
+def PlotTSoverTimeNodes(nodearrayTSM,Ntype,
+                        EPOCH='1970-01-01',Xmin=1970,Xmax=2025,
+                        yearplain=[2017,2018,2019,2020,2021],
+                        yeardash=[2008,2011,2014],
+                        yearlongdash=[2021.167],
+                       yscale="log",figsize=(18,4)):
+    x=np.arange(1634)/12+EPOCH2Epoch(EPOCH) # switch from month to year scale
+    plt.figure(figsize=figsize)
+    plt.title("New Nodes of Type "+Ntype+" per month")
+    plt.fill_between(x,np.bincount(nodearrayTSM,minlength=1634),color="tab:blue",label=Ntype+r' $Nodes$',alpha=0.5)
+    verticalline(yearplain=yearplain,yeardash=yeardash,yearlongdash=yearlongdash)
+    plt.yscale(yscale) 
+    plt.xlim(Xmin,Xmax)
     plt.legend(loc='upper left')
     plt.grid()
     plt.show()
     
-def PlotTSoverTimeEdges(sourcearrayTS,targetarrayTS,mask_type,Etype):
-    x=np.arange(1634)/12+1970
-    plt.figure(figsize=(18,4))
-    plt.title("Edges of type :"+Etype)
-    plt.fill_between(x,np.bincount(sourcearrayTS[mask_type],minlength=1634),color="tab:blue",label=Etype+r' TS $Source$',alpha=0.5)
-    plt.fill_between(x,np.bincount(targetarrayTS[mask_type],minlength=1634),color="tab:orange",label=Etype+r' TS $Target$',alpha=0.5)
-    plt.yscale("log") 
-    plt.xlim(1970,2025)
+def PlotTSoverTimeEdges(sourcearrayTSM,targetarrayTSM,Etype,
+                        EPOCH='1970-01-01',Xmin=1970,Xmax=2025,
+                        yearplain=[2017,2018,2019,2020,2021],
+                        yeardash=[2008,2011,2014],
+                        yearlongdash=[2021.167],
+                       yscale="log",figsize=(18,4)):
+    x=np.arange(1634)/12+EPOCH2Epoch(EPOCH)
+    plt.figure(figsize=figsize)
+    plt.title("New Edges of Type "+Etype+" per month, using Source Node or Target Node TimeStamps")
+    plt.fill_between(x,np.bincount(sourcearrayTSM,minlength=1634),color="tab:blue",label=Etype+r' $Source$',alpha=0.5)
+    plt.fill_between(x,np.bincount(targetarrayTSM,minlength=1634),color="tab:orange",label=Etype+r' $Target$',alpha=0.5)
+    verticalline(yearplain=yearplain,yeardash=yeardash,yearlongdash=yearlongdash)
+    plt.yscale(yscale) 
+    plt.xlim(Xmin,Xmax)
     plt.legend(loc='upper left')
     plt.grid()
     plt.show()
     
-def verticalline(alpha=0.5,lw=1,yearplain=[2017,2018,2019,2020,2021],yeardash=[2008,2011,2014]):
-    print("Plain vertical lines :",yearplain)
-    print("Dash  vertical lines :",yeardash)
+def PlotTSoverTimeEdgesNodes(nodeTSM,Ntype,edgeTSM,Etype,
+                        EPOCH='1970-01-01',Xmin=1970,Xmax=2025,
+                        yearplain=[2017,2018,2019,2020,2021],
+                        yeardash=[2008,2011,2014],
+                        yearlongdash=[2021.167],
+                       yscale="log",figsize=(18,4)):
+    x=np.arange(1634)/12+EPOCH2Epoch(EPOCH)
+    plt.figure(figsize=figsize)
+    plt.title("Average Edges/Nodes  : New Edges of Type "+Etype+" / New Nodes of Type "+Ntype+" (per month)")
+    plt.scatter(x,np.bincount(edgeTSM,minlength=1634)/np.bincount(nodeTSM,minlength=1634),
+                color="tab:blue",label=Etype+'/'+Ntype,alpha=0.5)
+    verticalline(yearplain=yearplain,yeardash=yeardash,yearlongdash=yearlongdash)
+    plt.yscale(yscale) 
+    plt.xlim(Xmin,Xmax)
+    plt.legend(loc='upper left')
+    plt.grid()
+    plt.show() 
+    
+def verticalline(alpha=0.5,lw=1,yearplain=[2017,2018,2019,2020,2021],yeardash=[2008,2011,2014],yearlongdash=[2021.167]):
+    #print("Plain vertical lines :",yearplain)
+    #print("Dash  vertical lines :",yeardash)
     for year in yearplain:
         plt.axvline(x=year,color='k',alpha=alpha,lw=lw)
-    plt.axvline(x=2021+(3-1)/12,color='k',linestyle='--',alpha=1,lw=lw)
+    for year in yearlongdash:
+        plt.axvline(x=year,color='k',linestyle='--',alpha=1,lw=lw)
     for year in yeardash:
         plt.axvline(x=year,color='k',linestyle=':',alpha=1,lw=lw)
         
-def DisplayTSstat(deltaTS,mask_type,Etype):
-    typed_deltaTS=deltaTS[mask_type]
-    mn=60;hour=60*60;day=24*hour;week=7*day;year=365*day
+def DisplayTSstat(deltaTS,Etype):
+    #typed_deltaTS=deltaTS[mask_type]
+    mn=60;hour=60*60;day=24*hour;week=7*day;year=365*day;month=year//12
     TSmax=2**32-1
     for tsmin,tsmax,field in [
-        (-TSmax,-year,f'           TS <= -1 Year'),
-        (-year,-week, f'-1 Year <  TS <= -1 Week'),
-        (-week,-day,  f'-1 Week <  TS <= -1 Day '),
-        (-day,-hour,  f'-1 Day  <  TS <= -1 Hour'),
-        (-hour,-mn,   f'-1 Hour <  TS <= -1 Mn  '),
-        (-mn,-1,      f'-1 Mn   <  TS <= -1 S   '),
-        (None,None,   None), # skip line
-        (-TSmax,-1,    Etype+f'     Total TS <  0 S (negative)'),
-        (None,None,   None), # skip line
-        (0,0,         Etype+f'     ***** TS == 0 S (null)    '),
-        (None,None,   None), # skip line
-        (1,TSmax,     Etype+f'     Total TS >  0 S (positive)'),
-        (None,None,   None), # skip line
-        (1,mn,        f' 1 S    <= TS <   1 Mn  '),
-        (mn,hour,     f' 1 Mn   <= TS <   1 Hour'),
-        (hour,day,    f' 1 Hour <= TS <   1 Day '),
-        (day,week,    f' 1 Day  <= TS <   1 Week'),
-        (week,year,   f' 1 Week <= TS <   1 year'),
-        (year,TSmax,  f' 1 year <= TS           '),
+        (-TSmax,-10*year, f'             TS <= -10 Years'),
+        (-10*year,-year,  f'-10 Years <  TS <= - 1 Year '),
+        (-year,-month,    f'- 1 Year  <  TS <= - 1 Month'),
+        (-month,-week,    f'- 1 Month <  TS <= - 1 Week '),
+        (-week,-day,      f'- 1 Week  <  TS <= - 1 Day  '),
+        (-day,-hour,      f'- 1 Day   <  TS <= - 1 Hour '),
+        (-hour,-mn,       f'- 1 Hour  <  TS <= - 1 Mn   '),
+        (-mn,-1,          f'- 1 Mn    <  TS <= - 1 S    '),
+        (None,None,    None), # skip line
+        (-TSmax,-1,     Etype+f'     Total TS <  0 S (negative)'),
+        (None,None,    None), # skip line
+        (0,0,          Etype+f'     ***** TS == 0 S (null)    '),
+        (None,None,    None), # skip line
+        (1,TSmax,      Etype+f'     Total TS >  0 S (positive)'),
+        (None,None,    None), # skip line
+        (1,mn,            f'  1 S     <= TS <    1 Mn   '),
+        (mn,hour,         f'  1 Mn    <= TS <    1 Hour '),
+        (hour,day,        f'  1 Hour  <= TS <    1 Day  '),
+        (day,week,        f'  1 Day   <= TS <    1 Week '),
+        (week,month,      f'  1 Week  <= TS <    1 Month'),
+        (month,year,      f'  1 Month <= TS <    1 Year '),
+        (year,10*year,    f'  1 Year  <= TS <   10 Years'),
+        (10*year,TSmax,   f' 10 Years <= TS             '),
     ]:
+        stat={}
         if field==None:
             print('.'*80)
         else:
             if tsmin==0 and tsmax==0:
-                count=np.sum(typed_deltaTS==0)
-            elif tsmin<0:
-                count=np.sum(np.logical_and(typed_deltaTS>tsmin,typed_deltaTS<=tsmax))
+                a=deltaTS==0
+                count=np.count_nonzero(a)
+                del a
+            elif tsmin<0: 
+                a=deltaTS>tsmin
+                b=deltaTS<=tsmax
+                a=np.logical_and(a,b)
+                count=np.count_nonzero(a)
+                del a,b
             else:
-                count=np.sum(np.logical_and(typed_deltaTS>=tsmin,typed_deltaTS<tsmax))
-            print(field+f' {count:15,} i.e {np.round(100*count/len(typed_deltaTS),2):>6.2f} %')
-
-def PlotTSHisto(deltaTS,mask_type,Etype):
-    typed_deltaTS=deltaTS[mask_type]
-    mn=60;hour=60*60;day=24*hour;week=7*day;year=365*day
-    x=np.arange(1634)/12+1970
-    h=np.where(typed_deltaTS==0,0,np.sign(typed_deltaTS)*np.log10(np.abs(typed_deltaTS)))
-    plt.figure(figsize=(18,4))
-    plt.title("Edge Type :"+Etype+"\n Vertical black lines : -1Year/-1Week/-1Days/-1Hour/-1mn/0s/1mn/1Hour/1Day/1Week/1Year")
+                a=deltaTS>=tsmin
+                b=deltaTS<tsmax
+                a=np.logical_and(a,b)
+                count=np.count_nonzero(a)
+                del a,b
+            print(field+f' {count:15,} i.e {np.round(100*count/len(deltaTS),2):>6.2f} %')
+        
+def PlotTSHisto(deltaTS,Etype,EPOCH='1970-01-01',yscale="log",figsize=(18,4)):
+    mn=60;hour=60*60;day=24*hour;week=7*day;year=365*day;month=year//12
+    #x=np.arange(1634)/12+EPOCH2Epoch(EPOCH)
+    #h=np.sign(deltaTS)*np.log10(np.abs(deltaTS))
+    #mask=np.where(deltaTS==0)[0]
+    #h[np.where(deltaTS==0)[0]]=0
+    h=np.where(deltaTS==0,0,np.sign(deltaTS)*np.log10(np.abs(deltaTS)))
+    plt.figure(figsize=figsize)
+    #plt.title("Edge Type :"+Etype+"\n Vertical black lines : -1Year/-1month/-1Week/-1Days/-1Hour/-1mn/0s/1mn/1Hour/1Day/1Week/1Month/1Year")
     # vertical line 1mn, 1H, 1D,1W,1Y
-    for xv in [mn,day,hour,week,year]:
+    xticks=[-np.log10(10*year),-np.log10(year),-np.log10(month),-np.log10(week),-np.log10(day),-np.log10(hour),-np.log10(mn),0,
+            np.log10(mn),np.log10(hour),np.log10(day),np.log10(week),np.log10(month),np.log10(year),np.log10(10*year)]
+   
+    ax = plt.gca() 
+    xtick_labels = ['-10 Year','-1 Year','-1 Month','-1 Week','-1 Day','-1 Hour','-1 Mn','0 s','1 Mn','1 Hour','1 Day','1 Week','1 Month','1 Year','10 Year']
+    plt.xticks(xticks)    
+    ax.set_xticklabels(xtick_labels,rotation=30,ha='right')    
+    
+    for xv in [mn,day,hour,week,month,year,10*year]:
         plt.axvline(x=np.log10(xv),color='k',alpha=0.5,lw=2)
         plt.axvline(x=-np.log10(xv),color='k',alpha=0.5,lw=2)
-    plt.hist(h,bins='rice',density=False,log=True,label=r'$\operatorname{sgn}(\Delta TS){\rm Log}_{10}(|\Delta TS|)$',alpha=0.8)
+   
+    h=plt.hist(h,bins=1001,range=[-10,10],density=False,label=r'$\operatorname{sgn}(\Delta TS){\rm Log}_{10}(|\Delta TS|)$',alpha=0.8)
     plt.legend(loc="upper left")
+    plt.yscale("log")
     plt.grid()
     plt.show()
+    del h
+    
     print("End for edge type :",Etype)   
 
 

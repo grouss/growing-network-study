@@ -156,7 +156,7 @@ def DisplayTypeStats(nodes,edges,d,depth=None,Debug=False,FilePath=None):
                 statsoutput[key]=value
             else:
                 exception.append((key,value))
-        print(f'_'*30) 
+        print(f'_'*36) 
         print(f'___ Total : {totaltmp:15,} ({np.round(100*totaltmp/np.sum(list(stats.values())),2)}%)')        
         if Fmask and field==f'GetEdgesTypesArray':
             print()
@@ -192,7 +192,7 @@ def DisplayTypeStats(nodes,edges,d,depth=None,Debug=False,FilePath=None):
     return statsoutput
             
 
-def BuildNodesTimeStampHisto(nodes,edges,nodesTS,d,stat={},depth=None):
+def BuildNodesTimeStampHisto(nodes,edges,nodesTS,d,stat={},depth=None,EPOCH='1970-01-01'):
     """
     Computes an histogram of node types based on their timestamps (months since EPOCH).
         Parameters:
@@ -206,7 +206,7 @@ def BuildNodesTimeStampHisto(nodes,edges,nodesTS,d,stat={},depth=None):
             dict: Dict with counts per months since EPOCH and type string.
     """
     nodestype,encoding=GetNodesTypesArray(nodes,edges,d,depth=depth)
-    nodesTSM=timestampsarray2yearmonth(nodesTS)
+    nodesTSM=timestampsarray2yearmonth(nodesTS,EPOCH=EPOCH)
     TSM2stat(nodesTSM,nodestype,encoding,stat=stat)
     return stat
         
@@ -221,14 +221,14 @@ def TSM2stat(TSM,arraytype,encoding,stat={}):
         Returns:
             dict: Dictionary mapping each type label to an array of counts over time.
     """
-    TSmax=1634 # =1+max(nodesTS)=1+1633
-    TSM=TSM+TSmax*arraytype
+    TSmax=1634 # =1+max(nodesTS)=1+1633 
+    TSM=TSM+TSmax*arraytype.astype('int')
     TSM=np.bincount(TSM,minlength=TSmax*len(encoding))
     for i,Ntype in enumerate(encoding):
         stat[Ntype]=TSM[TSmax*i:TSmax*(i+1)]
     return stat
     
-def BuildEdgesTimeStampHisto(nodes,edges,nodesTS,d,stat={},depth=None,Verbose=False):
+def BuildEdgesTimeStampHisto(nodes,edges,nodesTS,d,stat={},depth=None,Verbose=False,EPOCH='1970-01-01'):
     """
     Builds a histogram of edge types based on the timestamps of their source and target nodes.
         Parameters:
@@ -255,7 +255,7 @@ def BuildEdgesTimeStampHisto(nodes,edges,nodesTS,d,stat={},depth=None,Verbose=Fa
     edgesTSM=timestampsarray2yearmonth(np.maximum(
         GetSourceEdgeTimeStamp(nodes,edges,nodesTS,d),
         GetTargetEdgeTimeStamp(nodes,edges,nodesTS,d)
-        ))
+        ),EPOCH=EPOCH)
     if Verbose:
         tf=time.time()
         print("edgesTSM 2/2 ",np.round(tf-ti),"(s)")
@@ -278,7 +278,7 @@ def BuildEdgesTimeStampHisto(nodes,edges,nodesTS,d,stat={},depth=None,Verbose=Fa
         ti=tf
     return stat
 
-def DisplayTimestampException(arraytype,encoding,arrayTS,TypeString,Verbose=False):
+def DisplayTimestampException(arraytype,encoding,arrayTS,TypeString,Verbose=False,EPOCH='1970-01-01'):
     """
     Displays timestamp anomalies (zero or max value) for each type in a typed array.
     Specifically checks for:
@@ -290,6 +290,7 @@ def DisplayTimestampException(arraytype,encoding,arrayTS,TypeString,Verbose=Fals
             arrayTS: Array of timestamps to check.
             TypeString (str): Label to prefix in the printed output (e.g., "Node" or "Edge").
             Verbose (bool, optional): If True, prints elapsed time. Default is False.
+            EPOCH (string, optional) : 'YYYY-MM-DD' epoch time corresponding to timestamp=0
         Returns:
             None
     """
@@ -303,7 +304,7 @@ def DisplayTimestampException(arraytype,encoding,arrayTS,TypeString,Verbose=Fals
         if Ntot!=0:
             Nzero=np.sum(np.logical_and(mask_type,mask_zero))
             Nmax=np.sum(np.logical_and(mask_type,mask_max))
-            print(f'{TypeString:12} Timestamp Exceptions {Ntype:5} | Total={Ntot:15,} | Zero(1970/1/1)={Nzero:15,} | Ts(2106/2/7)={Nmax:15,}')
+            print(f'{TypeString:12} Timestamp Exceptions {Ntype:5} | Total={Ntot:15,} | Zero({EPOCH:10})={Nzero:15,} | Ts({EPOCH:10}+2^32-1)={Nmax:15,} |')
     tf=time.time()
     
     if Verbose: print("Elapse time ",np.round(tf-ti),"(s)")
@@ -312,7 +313,7 @@ def DisplayTimestampException(arraytype,encoding,arrayTS,TypeString,Verbose=Fals
 
 def GetDegreeStats(sourceedges,targetedges,TSY,s,dout,din,Nnodes,
                    #YearBegin=1990,YearEnd=2030,YearSlice=40,FlagMonth=False,MonthSlice=1):
-                   YearBegin=1980,YearEnd=2025,YearSlice=1,FlagMonth=False,TSM=None,MonthSlice=1,Verbose=False):
+                   YearBegin=1980,YearEnd=2025,EPOCH='1970-01-01',YearSlice=1,FlagMonth=False,TSM=None,MonthSlice=1,Verbose=False,YearList=None):
     """
     Computes and stores time-sliced in-degree and out-degree histograms for a given entity.
 
@@ -340,6 +341,7 @@ def GetDegreeStats(sourceedges,targetedges,TSY,s,dout,din,Nnodes,
     ti=time.time()
     dout[s]={}
     din[s]={}
+    Epoch=EPOCH2Epoch(EPOCH)
     if FlagMonth:
         Nstep=max(1,((YearEnd-YearBegin)*12)//10)
         for count,Month in enumerate(range(12*YearBegin,12*(YearEnd+1),MonthSlice)):
@@ -349,22 +351,28 @@ def GetDegreeStats(sourceedges,targetedges,TSY,s,dout,din,Nnodes,
             else:
                 if count%Nstep==0: 
                     print(Month//12,Month%12,end=" ")
-            mask=TSM<(Month-1970*12) # <= 1/Month/YEAR
+            mask=TSM<(Month-Epoch*12) # <= 1/Month/YEAR
             dout[s][Month]=GetXYhist(sourceedges[mask],Nnodes)
             din[s][Month]=GetXYhist(targetedges[mask],Nnodes)   
         # Year=3000 => no constrainte
         dout[s][3000*12]=GetXYhist(sourceedges,Nnodes)
         din[s][3000*12]=GetXYhist(targetedges,Nnodes)   
     else:
-        Nstep=max(1,(YearEnd-YearBegin)//10)
-        for count,Year in enumerate(range(YearBegin,YearEnd+1,YearSlice)):
+        YearListTodo=list(range(YearBegin,YearEnd+1,YearSlice))
+        #print("YearListTodo",YearListTodo)
+        if YearList!=None:
+            YearListTodo+=YearList
+            YearListTodo=sorted(list(set(YearListTodo)))
+        Nstep=max(1,len(YearListTodo)//10)
+        for count,Year in enumerate(YearListTodo):
             tf=time.time()
             if Verbose: 
                 print(Year,"(",int(tf-ti),"s)",end=" ")
             else:
                 if count%Nstep==0: 
                     print(Year,end=" ")
-            mask=TSY<(Year-1970) # < 1/1/YEAR
+            mask=TSY<(Year-Epoch) # < 1/1/YEAR
+            #print(Year,np.sum(mask))
             dout[s][Year]=GetXYhist(sourceedges[mask],Nnodes)
             din[s][Year]=GetXYhist(targetedges[mask],Nnodes)  
         # Year=3000 => no constrainte
@@ -372,7 +380,8 @@ def GetDegreeStats(sourceedges,targetedges,TSY,s,dout,din,Nnodes,
         din[s][3000]=GetXYhist(targetedges,Nnodes)  
     print()
     
-def GetAllTypesDegreeStats(sourceedges,targetedges,TSY,dout,din,Nnodes,FlagMonth=False,TSM=None):
+def GetAllTypesDegreeStats(sourceedges,targetedges,TSY,dout,din,Nnodes,
+                           FlagMonth=False,TSM=None, YearBegin=1980,YearEnd=2025,EPOCH='1970-01-01',YearSlice=1,YearList=None):
     """
     Computes degree statistics over time for all node types combined.
     Calls `GetDegreeStats` with a fixed label ("All types") and stores the resulting
@@ -394,12 +403,12 @@ def GetAllTypesDegreeStats(sourceedges,targetedges,TSY,dout,din,Nnodes,FlagMonth
     s="All types"
     print("Start "+s)
     ti=time.time()
-    GetDegreeStats(sourceedges,targetedges,TSY,s,dout,din,Nnodes,FlagMonth=FlagMonth,TSM=TSM)
+    GetDegreeStats(sourceedges,targetedges,TSY,s,dout,din,Nnodes,FlagMonth=FlagMonth,TSM=TSM,
+                   YearBegin=YearBegin,YearEnd=YearEnd,EPOCH=EPOCH,YearSlice=YearSlice,YearList=YearList)
     tf=time.time()
     print("All types elapse : ",np.round(tf-ti,2),"(s)")
     
-def GetPerTypesDegreeStats(sourceedges,targetedges,TSY,Edgestype,Edgesencoding,dout,din,Nnodes,
-                           PerFlag="EDGE",FlagMonth=False,TSM=None):
+def GetPerTypesDegreeStats(sourceedges,targetedges,TSY,Edgestype,Edgesencoding, dout,din,Nnodes,PerFlag="EDGE",FlagMonth=False,TSM=None,YearBegin=1980,YearEnd=2025,EPOCH='1970-01-01',YearSlice=1,YearList=None):
     """
     Computes time-sliced degree statistics for each edge type (or source/target projection).
     For each unique edge type (or aggregated type if PerFlag is "SOURCE" or "TARGET"), the function
@@ -457,10 +466,12 @@ def GetPerTypesDegreeStats(sourceedges,targetedges,TSY,Edgestype,Edgesencoding,d
                 targetedgestmp=targetedges[masktype]
                 if not FlagMonth:
                     TSYtmp=TSY[masktype]
-                    GetDegreeStats(sourceedgestmp,targetedgestmp,TSYtmp,stmp,dout,din,Nnodes,FlagMonth=False,TSM=None)
+                    GetDegreeStats(sourceedgestmp,targetedgestmp,TSYtmp,stmp,dout,din,Nnodes,
+                                   FlagMonth=False,TSM=None,YearBegin=YearBegin,YearEnd=YearEnd,EPOCH=EPOCH,YearSlice=YearSlice,YearList=YearList)
                 else:
                     TSMtmp=TSM[masktype]
-                    GetDegreeStats(sourceedgestmp,targetedgestmp,None,stmp,dout,din,Nnodes,FlagMonth=True,TSM=TSMtmp)
+                    GetDegreeStats(sourceedgestmp,targetedgestmp,None,stmp,dout,din,Nnodes,FlagMonth=True,TSM=TSMtmp
+                                  ,YearBegin=YearBegin,YearEnd=YearEnd,EPOCH=EPOCH)
     tf=time.time()
     print("Per edges types elapse : ",np.round(tf-ti,2),"(s)")
 

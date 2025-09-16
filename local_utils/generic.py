@@ -25,7 +25,7 @@ def DisplayCopyrightInfo(Verbose=True):
     outputstring=80*"-"+"\n"
     
     outputstring+="Copyright 2025 Université Paris Cité, France \n"
-    outputstring+="Author: Guillaume Rousseau, Physics Department, Paris, France \n"
+    outputstring+="Author: Guillaume Rousseau, MSC Lab, Physics Department, Paris, France \n"
     outputstring+="\n"
     outputstring+="(https://www.linkedin.com/in/grouss/)\n"
     outputstring+="\n"
